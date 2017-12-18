@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+
+
+<html>
+    <header>
+       <meta charset="utf-8"/>
+        <script type="text/javascript" src="rachel_data.json"></script>
+    </header>
+<body>
+
+
+<script>
+
+    var elevation = JSON.parse(elevation);
+    var heart = JSON.parse(heart);
+    var steps = JSON.parse(steps);
+    var minutes = JSON.parse(minutes);
+    var distance = JSON.parse(distance);
+
+    var day1_elevation_date = elevation[2].dateTime;
+    var day1_elevation_value = elevation[2].value;
+    var day1_caloriesOut = heart[0].value.heartRateZones[0].caloriesOut;
+    var day1_restingHeartRate = heart[0].value.minutes;
+    var day_steps = steps[0].value;
+    console.log(day_steps);
+
+    // console.log(day1_elevation_date);
+    // console.log(day1_elevation_value);
+    // console.log(day1_caloriesOut);
+    var arrayThing = [];
+
+    for (n = 0; n <= 13; n++) {
+      for (k = 0; k <= 3; k++) {
+        var thing = heart[n].value.heartRateZones[k].minutes;
+        // console.log("n is " + n + " and k is " + k);
+        arrayThing.push(thing);
+      }
+    }
+
+    var stepArray = [];
+
+    for (p = 0; p <=31; p++) {
+      var step_thing = steps[p].value;
+      stepArray.push(step_thing);
+    }
+    console.log("stepArray is " + stepArray);
+
+    var minArray = [];
+
+    for (l = 0; l <=31; l++) {
+      var min_thing = minutes[l].value;
+      minArray.push(min_thing);
+    }
+    console.log("minArray is " + minArray);
+
+    var distanceArray = [];
+
+    for (err = 0; err <=2; err++) {
+      var distance_thing = distance[err].value;
+      distanceArray.push(distance_thing);
+    }
+    console.log("distanceArray is " + distanceArray);
+
+    // console.log(arrayThing);
+
+    // console.log(day1_restingHeartRate);
+    // console.log(user1_age);
+
+</script>
+
+
+    </body>
+</html>

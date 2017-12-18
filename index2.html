@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- style from d3 visualization: https://bl.ocks.org/mbostock/1062544 -->
+<style>
+
+body {
+  margin: 0;
+  background: #FFF;
+  min-width: 960px;
+}
+
+rect {
+  fill: none;
+  pointer-events: all;
+}
+
+circle {
+  fill: none;
+  /*this changes the width of the circle outline*/
+  /*stroke-width: 50px;*/
+}
+
+/*from codepen for saving functionality: https://codepen.io/Palestinian/full/xBDHi*/
+li {
+    padding: 0 !important;
+    position:fixed;
+}
+
+#liDiv:hover #liDiv{
+display : block;
+}
+
+li .wrapper {
+    display: block;
+    height: 100%;
+    width: auto;
+    position: relative;
+    -webkit-transition: -webkit-transform 300ms ease;
+    -moz-transition: -moz-transform 300ms ease;
+    transition: transform 300ms ease;
+}
+.wrapper .go, .wrapper .item, .wrapper .del {
+    display: inline-block;
+    padding: 0.9em;
+    text-shadow: none;
+    border-style: none;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.wrapper .item {
+    width: 100%;
+    height: 100%;
+}
+.wrapper .go, .wrapper .del {
+    height: 100%;
+    text-align:center;
+    font-weight: bold;
+    border-width: 1px 0;
+    border-style: solid;
+    border-color: #ddd;
+}
+.wrapper .go {
+    background: #ffcccc;
+    border-color: #ffcccc;
+}
+.wrapper .del {
+    background: #ffcccc;
+    border-color: #ffcccc;
+}
+
+</style>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css" />
+    <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="https://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+    <script src="https://cdn.rawgit.com/eligrey/canvas-toBlob.js/f1a01896135ab378aa5c0118eadd81da55e698d8/canvas-toBlob.js"></script>
+	   <script src="https://cdn.rawgit.com/eligrey/FileSaver.js/e9d941381475b5df8b7d7691013401e171014e89/FileSaver.min.js"></script>
+     <!-- from codepen for saving functionality: https://codepen.io/Palestinian/full/xBDHi -->
+     <script src="https://cdn.rawgit.com/eligrey/canvas-toBlob.js/f1a01896135ab378aa5c0118eadd81da55e698d8/canvas-toBlob.js"></script>
+	   <script src="https://cdn.rawgit.com/eligrey/FileSaver.js/e9d941381475b5df8b7d7691013401e171014e89/FileSaver.min.js"></script>
+     <!-- JSON file for fitbit data -->
+     <script type="text/javascript" src="rachel_data.json"></script>
+</head>
+
+
+<body>
+
+
+<script src="d3.min.js"></script>
+<script>
+
+// getting data from JSON file
+var heart = JSON.parse(heart);
+var steps = JSON.parse(steps);
+var activity = JSON.parse(minutes);
+var distance = JSON.parse(distance);
+
+// parsing through JSON data
+// resting heart rate
+var arrayThing = [];
+
+for (n = 0; n <= 30; n++) {
+  var thing = heart[n].value.restingHeartRate
+  arrayThing.push(thing);
+}
+
+// steps
+var stepArray = [];
+
+for (p = 0; p <=31; p++) {
+  var step_thing = steps[p].value;
+  stepArray.push(step_thing);
+}
+
+// activity minutes
+var actArray = [];
+
+for (l = 0; l <=31; l++) {
+  var act_thing = activity[l].value;
+  actArray.push(act_thing);
+}
+
+// heart rate zone minutes
+var minutesArray = [];
+
+for (n = 0; n <= 13; n++) {
+  for (k = 0; k <= 3; k++) {
+    var thing = heart[n].value.heartRateZones[k].minutes;
+    minutesArray.push(thing);
+  }
+}
+
+// distance
+var distanceArray = [];
+
+for (err = 0; err <=31; err++) {
+  var distance_thing = distance[err].value;
+  distanceArray.push(distance_thing);
+}
+
+
+// d3 visualization that creates the circles from: https://bl.ocks.org/mbostock/1062544
+var width = Math.max(960, innerWidth),
+    height = Math.max(500, innerHeight);
+
+// counter
+var i = 0;
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+svg.append("rect")
+    .attr("width", width)
+    .attr("height", height)
+
+// counter
+var counter = 0;
+
+// setInterval makes it so that the circles are created after a certain
+// amount of time, in this case 1 second. Not dependent on mouse like the original d3.
+setInterval(function(){
+  counter += 1;
+  var date = new Date();
+  var secondsNow = date.getSeconds();
+  // if statement so that when we have 30 circles, the function stops
+  if (counter > 30) {
+    return true;
+    // if statement so that it only calls particle(), the circle creating function, at whole seconds
+  }if ((secondsNow%1) == 0) {
+      particle();
+    }
+}, 1000);
+
+// counter
+var g = 0;
+
+// # of circles
+var numCircles = 35;
+
+var screenWidth = innerWidth;
+var screenHeight = innerHeight;
+
+// various counters
+var rad = 0;
+var j = -1;
+// xSet variables
+var xFactor = (screenWidth/5);
+var t = (-1 * xFactor);
+// ySet variables
+var yFactor = (screenHeight/4);
+var v = (-1 * yFactor);
+var f = -1;
+var minCounter = -1;
+var colorCounter = -1;
+
+// function from d3 that creates the circles, original code changed for our purposes
+// https://bl.ocks.org/mbostock/1062544
+function particle() {
+
+
+  svg.insert("circle", "rect")
+
+      // the x variable for the position
+      .attr("cx", xSet())
+
+      // the y variable for the position
+      .attr("cy", ySet())
+
+      // slinky animation that makes it grow
+      .attr("r", 1e-6)
+
+      // cycles through colors
+      // .style("stroke", d3.rgb(245, 161, 158).brighter(colorSet()))
+      // .style("stroke", d3.rgb(245, 161, 158))
+      .style("stroke", d3.rgb(245, 161, colorSet()))
+      .style("stroke-width",thicknessSet())
+      // opacity for the circles
+      .style("stroke-opacity", .75)
+    .transition()
+      //length of the oscillation or vibration through the circle chain
+      .duration(1000)
+      // eases the transition of the circle growth
+      .ease(Math.sqrt)
+      // function to change the radius according to time
+      //radius of the circle !!!!
+
+      .attr("r", radiusSet())
+
+      // function that determines x position so that circles form a grid
+      function xSet() {
+          t += (xFactor);
+          if (t > screenWidth) {
+            t = 0;
+          }
+          var xValue = t;
+          return xValue;
+      }
+
+      // function that determines y position so that circles form a grid
+      function ySet() {
+          f += 1;
+
+          if (f%6 == 0) {
+            v += yFactor;
+          }
+
+          if (v > screenHeight) {
+            v = 0;
+          }
+
+          var yValue = v;
+          return yValue;
+      }
+
+      // function that determines radius based on # of steps data
+      function radiusSet() {
+            j += 1;
+            rad = stepArray[j]/100;
+              if (j == (stepArray.length-1)) {
+                j=-1;
+          }
+          return rad;
+      }
+
+      // function that determines stroke width based on minutes of activity data
+      function thicknessSet() {
+        minCounter +=1;
+        var thickness = actArray[minCounter]/2;
+        if (minCounter == (actArray.length-1)) {
+          minCounter = -1;
+        }
+        return thickness;
+      }
+
+      // function that determines color based on distance data
+      // less than 4 miles is peach, between 4 and 7 is orange,
+      // and upwards of 7 is pink
+      function colorSet() {
+        colorCounter +=1;
+        var rgbValue = 0;
+        console.log("distance is " + distanceArray[colorCounter]);
+        if (distanceArray[colorCounter] < 4) {
+          rgbValue = 158;
+        }
+        else if (distanceArray[colorCounter] >= 4 && distanceArray[colorCounter] <7) {
+          rgbValue = 120;
+        }
+        else {
+          rgbValue = 180;
+        }
+        console.log("rgbValue is " + rgbValue);
+        return rgbValue;
+      }
+
+  d3.event.preventDefault();
+
+}
+
+
+// from codepen (save function) - didn't work
+// https://codepen.io/Palestinian/full/xBDHi
+
+$.fn.extend({
+    createBtn: function () {
+        var elmWidth = $("li", $(this)).width(),
+            listType = $(this).listview("option", "inset") ? true : false,
+            btnWidth = elmWidth < 300 && listType ? "35%" : elmWidth > 300 && !listType ? "25%" : "20%";
+        $("li", $(this)).each(function () {
+            var text = $(this).html();
+            $(this).html($("<div/>", {
+                class: "wrapper"
+            }).append($("<div/>", {
+                class: "go"
+            }).text("Save As Video").width(btnWidth)).append($("<div/>", {
+                class: "item"
+            }).text(text)).append($("<div/>", {
+                class: "del"
+            }).text("Save As Photo").width(btnWidth)).css({
+                left: "-" + btnWidth
+            }).on("swipeleft swiperight vclick tap", function (e) {
+
+                $(this).revealBtn(e, btnWidth);
+            }) /**/ );
+        });
+    },
+    revealBtn: function (e, x) {
+        var check = this.check(x),
+            swipe = e.type;
+        if (check == "closed") {
+            swipe == "swiperight" ? this.open(e, x, "left") : swipe == "swipeleft" ? this.open(e, x, "right") : setTimeout(function () {
+                this.close(e);
+            }, 0);
+            e.stopImmediatePropagation();
+        }
+        if (check == "right" || check == "left") {
+            swipe == "swiperight" ? this.open(e, "left") : swipe == "swipeleft" ? this.open(e, x, "right") : setTimeout(function () {
+                this.close(e);
+            }, 0);
+            e.stopImmediatePropagation();
+        }
+        if (check !== "closed" && e.isImmediatePropagationStopped() && (swipe == "vclick" || swipe == "tap")) {
+            this.close(e);
+        }
+    },
+    close: function (e) {
+        var check = this.check();
+        this.css({
+            transform: "translateX(0)"
+        });
+    },
+    open: function (e, x, dir) {
+        var posX = dir == "left" ? x : "-" + x;
+        $(this).css({
+            transform: "translateX(" + posX + ")"
+        });
+    },
+    check: function (x) {
+        var matrix = this.css("transform").split(" "),
+            posY = parseInt(matrix[matrix.length - 2], 10),
+            btnW = (this.width() * parseInt(x) / 100) / 1.1;
+        return isNaN(posY) ? "closed" : posY >= btnW ? "left" : posY <= "-" + btnW ? "right" : "closed";
+    }
+});
+
+$(document).on("pagecreate", function () {
+    $("ul").createBtn();
+});
+
+</script>
+
+<!-- from codepen, puts the saving in the footer: https://codepen.io/Palestinian/full/xBDHi -->
+<div data-role="footer" data-position="fixed" data-theme="a" data-tap-toggle="false">
+  <div role="main" class="ui-content" id="liDiv">
+      <ul data-role="listview">
+          <li style="text-align:center;">Maddie's Art</li>
+      </ul>
+  </div>
+</div>
+
+</ul>
+</div>
+<!-- </div> -->
